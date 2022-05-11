@@ -10,7 +10,6 @@ import { BuildIcon, ConfigIcon, HelpIcon, MoreOptionsActiveIcon, MoreOptionsIcon
 import ModeMenu from './ModeMenu';
 import PopButton from './PopButton';
 import { SegmentedButton, SegmentedButtonSet, SegmentedLink } from './SegmentedButton';
-import ToolsMenu from './ToolsMenu';
 
 import * as actions from './actions';
 import * as selectors from './selectors';
@@ -33,14 +32,14 @@ const Header: React.FC = () => (
         <AdvancedOptionsMenuButton />
       </SegmentedButtonSet>
     </HeaderSet>
+    <HeaderSet id="code">
+      <SegmentedButtonSet>
+        <GithubButton />
+      </SegmentedButtonSet>
+    </HeaderSet>
     <HeaderSet id="share">
       <SegmentedButtonSet>
         <ShareButton />
-      </SegmentedButtonSet>
-    </HeaderSet>
-    <HeaderSet id="tools">
-      <SegmentedButtonSet>
-        <ToolsMenuButton />
       </SegmentedButtonSet>
     </HeaderSet>
     <HeaderSet id="config">
@@ -129,6 +128,18 @@ const AdvancedOptionsMenuButton: React.FC = () => {
   return <PopButton Button={Button} Menu={AdvancedOptionsMenu} />;
 }
 
+const GithubButton: React.FC = () => {
+  const onClick = () => {
+    window.open("https://github.com/Sunscreen-tech/Sunscreen");
+  };
+
+  return (
+    <SegmentedButton title="Visit the Sunscreen repository on Github" onClick={onClick}>
+      <HeaderButton>Sunscreen repo</HeaderButton>
+    </SegmentedButton>
+  );
+};
+
 const ShareButton: React.FC = () => {
   const dispatch = useAppDispatch();
   const gistSave = useCallback(() => dispatch(actions.performGistSave()), [dispatch]);
@@ -138,18 +149,6 @@ const ShareButton: React.FC = () => {
       <HeaderButton>Share</HeaderButton>
     </SegmentedButton>
   );
-};
-
-
-const ToolsMenuButton: React.FC = () => {
-  const Button = React.forwardRef<HTMLButtonElement, { toggle: () => void }>(({ toggle }, ref) => (
-    <SegmentedButton title="Run extra tools on the source code" ref={ref} onClick={toggle}>
-      <HeaderButton isExpandable>Tools</HeaderButton>
-    </SegmentedButton>
-  ));
-  Button.displayName = 'ToolsMenuButton.Button';
-
-  return <PopButton Button={Button} Menu={ToolsMenu} />;
 };
 
 const ConfigMenuButton: React.FC = () => {

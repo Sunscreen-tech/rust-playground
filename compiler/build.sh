@@ -1,12 +1,39 @@
 #!/bin/bash
-
 set -euv -o pipefail
+
+if [-z ${DOCKER_USER}]
+then
+    echo "DOCKER_USER not specified"
+    exit 1
+else
+    echo "Docker user: " $DOCKER_USER
+fi
+
+if [ -z ${DOCKER_PASSWORD} ]
+then
+    echo "No DOCKER_PASSWORD specified for ${DOCKER_USER}"
+    exit 1
+else
+    echo "Docker password: ****"
+fi
+
+if [ -z ${DEPLOYMENT_ID} ];
+then
+    echo "DEPLOYMENT_ID not set"
+    exit 1
+else
+    echo "Deployment ID: " $DEPLOYMENT_ID
+fi
+
+# Login to docker
+echo ${DOCKER_PASSWORD} | docker login --username ${DOCKER_USER} --password-stdin
+
+repository=${DOCKER_REGISTRY}
 
 channels_to_build="${CHANNELS_TO_BUILD-stable beta nightly}"
 tools_to_build="${TOOLS_TO_BUILD-rustfmt clippy miri}"
-perform_push="${PERFORM_PUSH-false}"
 
-repository=shepmaster
+deployment_id="${DEPLOYMENT_ID}"
 
 for channel in $channels_to_build; do
     cd "base"
@@ -16,36 +43,16 @@ for channel in $channels_to_build; do
 
     docker pull "${full_name}" || true
     docker pull "${full_name}:munge" || true
+    docker pull "${full_name}:sources" || true
 
-    # Prevent building the tool multiple times
-    # https://github.com/moby/moby/issues/34715
-    docker build -t "${full_name}:munge" \
-           --target munge \
-           --cache-from "${full_name}" \
-           --cache-from "${full_name}:munge" \
-           --build-arg channel="${channel}" \
-           .
+    docker build -t "${full_name}:${deployment_id}" \
+        --cache-from "${full_name}" \
+        --cache-from "${full_name}:munge" \
+        --cache-from "${full_name}:sources" \
+        --build-arg channel="${channel}" \
+        .
 
-    docker build -t "${full_name}:sources" \
-           --target sources \
-           --cache-from "${full_name}" \
-           --cache-from "${full_name}:munge" \
-           --build-arg channel="${channel}" \
-           .
-
-    docker build -t "${full_name}" \
-           --cache-from "${full_name}" \
-           --cache-from "${full_name}:munge" \
-           --build-arg channel="${channel}" \
-           .
-
-    docker tag "${full_name}" "${image_name}"
-
-    if [[ "${perform_push}" == 'true' ]]; then
-        docker push "${full_name}:munge"
-        docker push "${full_name}:sources"
-        docker push "${full_name}"
-    fi
+    docker push "${full_name}:${deployment_id}"
 
     cd ..
 done
@@ -59,14 +66,12 @@ for tool in $tools_to_build; do
     full_name="${repository}/${image_name}"
 
     docker pull "${full_name}" || true
-    docker build -t "${full_name}" \
-           .
 
-    docker tag "${full_name}" "${image_name}"
+    docker build -t "${full_name}:${deployment_id}" \
+        --build-arg repository=${repository} \
+        .
 
-    if [[ "${perform_push}" == 'true' ]]; then
-        docker push "${full_name}"
-    fi
-
+    docker push "${full_name}:${deployment_id}"
+    
     cd ..
 done

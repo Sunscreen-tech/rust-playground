@@ -1,0 +1,15 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [{
+        "name": "playground",
+        "image": "$image_name",
+        "memory": 2048,
+        "privileged": true,
+        "portMappings": [
+            {
+              "hostPort": 80,
+              "containerPort": 5000
+            }
+          ]
+    }]
+}
