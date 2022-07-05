@@ -1,6 +1,22 @@
 #!/bin/bash
 
-echo Fetching from repo $DOCKER_REPO
+set -euv -o pipefail
+
+env
+
+if [ -z $DEPLOYMENT_ID ]
+then
+    echo "DEPLOYMENT_ID not set"
+    exit 1
+fi
+
+if [ -z $DOCKER_REPO ]
+then
+    echo "DOCKER_REPO not set"
+    exit 1
+fi
+
+echo Fetching from repo $DOCKER_REPO with tag $DEPLOYMENT_ID
 
 function INFO(){
     local function_name="${FUNCNAME[1]}"
