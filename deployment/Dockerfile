@@ -8,11 +8,16 @@ RUN test -n "$docker_repo"
 ARG deployment_id
 RUN test -n "$deployment_id"
 
+ARG tools=rust-stable rust-beta rust-nightly rustfmt clippy miri
+
 RUN echo Using Docker Repo: ${docker_repo}
 ENV DOCKER_REPO=${docker_repo}
 
 RUN echo Using Deployment ID: ${deployment_id}
 ENV DEPLOYMENT_ID=${deployment_id}
+
+RUN echo Using tools: ${tools}
+ENV TOOLS=${tools}
 
 ENV PLAYGROUND_UI_ROOT=/build
 ENV PLAYGROUND_GITHUB_TOKEN=""
