@@ -18,6 +18,7 @@ ENV DEPLOYMENT_ID=${deployment_id}
 
 RUN echo Using tools: ${tools}
 ENV TOOLS=${tools}
+ENV RUST_LOG=INFO
 
 ENV PLAYGROUND_UI_ROOT=/build
 ENV PLAYGROUND_GITHUB_TOKEN=""
