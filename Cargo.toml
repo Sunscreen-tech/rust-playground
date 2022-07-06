@@ -2,5 +2,4 @@
 members = [
     "ui",
     "top-crates",
-    "deployment"
 ]
