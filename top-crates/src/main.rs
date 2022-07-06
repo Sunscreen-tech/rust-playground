@@ -47,7 +47,7 @@ fn main() {
     let args = Args::parse();    
     
     let mut f =
-        File::open("crate-modifications.toml").expect("unable to open crate modifications file");
+        File::open("top-crates/crate-modifications.toml").expect("unable to open crate modifications file");
 
     let mut d = Vec::new();
     f.read_to_end(&mut d)
