@@ -3,7 +3,7 @@
     "containerDefinitions": [{
         "name": "playground",
         "image": "$image_name",
-        "memory": 2048,
+        "memory": 12288,
         "privileged": true,
         "portMappings": [
             {
