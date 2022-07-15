@@ -29,8 +29,12 @@ const storage = <St>(config: Config<St>): StoreEnhancer =>
     (reducer, preloadedState) => {
       const { storageFactory, serialize, deserialize } = config;
 
-      let storage: SimpleStorage;
+      // Sunscreen's customized playground doesn't save stuff
+      // to localStorage to prevent stale default programs
+      // that don't compile due to a breaking API change.
+      let storage: SimpleStorage = new InMemoryStorage();
 
+      /*
       try {
         // Attempt to use the storage to see if security settings are preventing it.
         storage = storageFactory();
@@ -39,7 +43,7 @@ const storage = <St>(config: Config<St>): StoreEnhancer =>
       } catch (e) {
         console.warn('Unable to store configuration, falling back to non-persistent in-memory storage');
         storage = new InMemoryStorage();
-      }
+      }*/
 
       const serializedState = storage.getItem(key);
       const persistedState = deserialize(serializedState);
