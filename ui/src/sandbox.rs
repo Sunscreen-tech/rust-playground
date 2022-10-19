@@ -13,8 +13,8 @@ use std::{
 use tempfile::TempDir;
 use tokio::{fs, process::Command, time};
 
-const DOCKER_PROCESS_TIMEOUT_SOFT: Duration = Duration::from_secs(10);
-const DOCKER_PROCESS_TIMEOUT_HARD: Duration = Duration::from_secs(12);
+const DOCKER_PROCESS_TIMEOUT_SOFT: Duration = Duration::from_secs(20);
+const DOCKER_PROCESS_TIMEOUT_HARD: Duration = Duration::from_secs(22);
 
 #[derive(Debug, Deserialize)]
 struct CrateInformationInner {
