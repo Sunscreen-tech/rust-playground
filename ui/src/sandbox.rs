@@ -3,8 +3,8 @@ use snafu::{ResultExt, Snafu};
 use std::{ffi::OsStr, fmt, io, os::unix::fs::PermissionsExt, string, time::Duration};
 use tokio::process::Command;
 
-const DOCKER_PROCESS_TIMEOUT_SOFT: Duration = Duration::from_secs(10);
-const DOCKER_PROCESS_TIMEOUT_HARD: Duration = Duration::from_secs(12);
+const DOCKER_PROCESS_TIMEOUT_SOFT: Duration = Duration::from_secs(20);
+const DOCKER_PROCESS_TIMEOUT_HARD: Duration = Duration::from_secs(22);
 
 #[derive(Debug, Deserialize)]
 struct CrateInformationInner {
