@@ -8,8 +8,8 @@ const PIR: State = `
 use sunscreen::{
     fhe_program,
     types::{bfv::Signed, Cipher},
-    Ciphertext, CompiledFheProgram, Compiler, Error, FheProgramInput, Params, PrivateKey,
-    PublicKey, Runtime,
+    Ciphertext, CompiledFheProgram, Compiler, Error, FheProgramInput, FheRuntime, Params,
+    PrivateKey, PublicKey,
 };
 
 const SQRT_DATABASE_SIZE: usize = 10;
@@ -55,17 +55,17 @@ struct Server {
     pub compiled_lookup: CompiledFheProgram,
 
     /// The server's runtime
-    runtime: Runtime,
+    runtime: FheRuntime,
 }
 
 impl Server {
     pub fn setup() -> Result<Server, Error> {
         let app = Compiler::new().fhe_program(lookup).compile()?;
 
-        let runtime = Runtime::new(app.params())?;
+        let runtime = FheRuntime::new(app.params())?;
 
         Ok(Server {
-            compiled_lookup: app.get_program(lookup).unwrap().clone(),
+            compiled_lookup: app.get_fhe_program(lookup).unwrap().clone(),
             runtime,
         })
     }
@@ -80,9 +80,9 @@ impl Server {
         let mut database = [[Signed::from(0); SQRT_DATABASE_SIZE]; SQRT_DATABASE_SIZE];
         let mut val = Signed::from(400);
 
-        for i in 0..SQRT_DATABASE_SIZE {
-            for j in 0..SQRT_DATABASE_SIZE {
-                database[i][j] = val;
+        for row in database.iter_mut() {
+            for entry in row.iter_mut() {
+                *entry = val;
                 val = val + 1;
             }
         }
@@ -105,12 +105,12 @@ struct Alice {
     private_key: PrivateKey,
 
     /// Alice's runtime
-    runtime: Runtime,
+    runtime: FheRuntime,
 }
 
 impl Alice {
     pub fn setup(params: &Params) -> Result<Alice, Error> {
-        let runtime = Runtime::new(params)?;
+        let runtime = FheRuntime::new(params)?;
 
         let (public_key, private_key) = runtime.generate_keys()?;
 
@@ -141,7 +141,7 @@ impl Alice {
 
         let value: i64 = value.into();
 
-        println!("Alice received {}", value);
+        println!("Alice received {value}");
         assert_eq!(value, 494);
 
         Ok(())
