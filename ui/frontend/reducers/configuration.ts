@@ -6,6 +6,7 @@ import {
   DemangleAssembly,
   Edition,
   Editor,
+  Example,
   Mode,
   Orientation,
   PairCharacters,
@@ -15,6 +16,7 @@ import {
 } from '../types';
 
 export interface State {
+  example: Example;
   editor: Editor;
   ace: {
     keybinding: string;
@@ -36,6 +38,7 @@ export interface State {
 }
 
 const DEFAULT: State = {
+  example: Example.Pir,
   editor: Editor.Ace,
   ace: {
     keybinding: 'ace',
@@ -58,11 +61,12 @@ const DEFAULT: State = {
 
 export default function configuration(state = DEFAULT, action: Action): State {
   switch (action.type) {
+    case ActionType.ChangeExample:
+      return { ...state, example: action.example };
     case ActionType.ChangeEditor:
       return { ...state, editor: action.editor };
     case ActionType.ChangeKeybinding: {
       const { ace } = state;
-
       return { ...state, ace: { ...ace, keybinding: action.keybinding } };
     }
     case ActionType.ChangeAceTheme: {

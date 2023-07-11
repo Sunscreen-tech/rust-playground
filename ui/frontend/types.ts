@@ -1,3 +1,8 @@
+export enum Example {
+  Pir = 'pir',
+  Sudoku = 'sudoku',
+}
+
 export type Page = 'index' | 'help';
 
 export interface Position {
