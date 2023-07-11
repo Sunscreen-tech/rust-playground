@@ -1,11 +1,15 @@
 import { Action, ActionType } from '../actions';
+import { Example } from '../types';
 
-const DEFAULT: State = `
-use sunscreen::{
+const HELLO_WORLD: State = `fn main() {
+    println!("Hello, world!");
+}`;
+
+const PIR: State = `use sunscreen::{
     fhe_program,
     types::{bfv::Signed, Cipher},
-    Ciphertext, CompiledFheProgram, Compiler, Error, FheProgramInput, Params, PrivateKey,
-    PublicKey, Runtime,
+    Ciphertext, CompiledFheProgram, Compiler, Error, FheProgramInput, FheRuntime, Params,
+    PrivateKey, PublicKey,
 };
 
 const SQRT_DATABASE_SIZE: usize = 10;
@@ -51,17 +55,17 @@ struct Server {
     pub compiled_lookup: CompiledFheProgram,
 
     /// The server's runtime
-    runtime: Runtime,
+    runtime: FheRuntime,
 }
 
 impl Server {
     pub fn setup() -> Result<Server, Error> {
         let app = Compiler::new().fhe_program(lookup).compile()?;
 
-        let runtime = Runtime::new(app.params())?;
+        let runtime = FheRuntime::new(app.params())?;
 
         Ok(Server {
-            compiled_lookup: app.get_program(lookup).unwrap().clone(),
+            compiled_lookup: app.get_fhe_program(lookup).unwrap().clone(),
             runtime,
         })
     }
@@ -76,9 +80,9 @@ impl Server {
         let mut database = [[Signed::from(0); SQRT_DATABASE_SIZE]; SQRT_DATABASE_SIZE];
         let mut val = Signed::from(400);
 
-        for i in 0..SQRT_DATABASE_SIZE {
-            for j in 0..SQRT_DATABASE_SIZE {
-                database[i][j] = val;
+        for row in database.iter_mut() {
+            for entry in row.iter_mut() {
+                *entry = val;
                 val = val + 1;
             }
         }
@@ -101,12 +105,12 @@ struct Alice {
     private_key: PrivateKey,
 
     /// Alice's runtime
-    runtime: Runtime,
+    runtime: FheRuntime,
 }
 
 impl Alice {
     pub fn setup(params: &Params) -> Result<Alice, Error> {
-        let runtime = Runtime::new(params)?;
+        let runtime = FheRuntime::new(params)?;
 
         let (public_key, private_key) = runtime.generate_keys()?;
 
@@ -137,7 +141,7 @@ impl Alice {
 
         let value: i64 = value.into();
 
-        println!("Alice received {}", value);
+        println!("Alice received {value}");
         assert_eq!(value, 494);
 
         Ok(())
@@ -162,12 +166,133 @@ fn main() -> Result<(), Error> {
 }
 `;
 
+const SUDOKU: State = `use sunscreen::{
+    bulletproofs::BulletproofsBackend,
+    types::zkp::{BulletproofsField, NativeField},
+    zkp_program, zkp_var, BackendField, Compiler, Error, ZkpRuntime,
+};
+
+#[zkp_program]
+fn sudoku_proof<F: BackendField>(
+    #[public] board: [[NativeField<F>; 9]; 9],
+    solution: [[NativeField<F>; 9]; 9],
+) {
+    let zero = zkp_var!(0);
+
+    let assert_unique_numbers = |squares| {
+        for i in 1..=9 {
+            let mut circuit = zkp_var!(1);
+            for s in squares {
+                circuit = circuit * (zkp_var!(i) - s);
+            }
+            circuit.constrain_eq(zero);
+        }
+    };
+
+    // Checks rows contain every number from 1 to 9
+    for row in solution {
+        assert_unique_numbers(row);
+    }
+
+    // Checks columns contain each number from 1 to 9
+    for col in 0..9 {
+        let column = solution.map(|r| r[col]);
+        assert_unique_numbers(column);
+    }
+
+    // Checks squares contain each number from 1 to 9
+    for i in 0..3 {
+        for j in 0..3 {
+            let rows = &solution[(i * 3)..(i * 3 + 3)];
+
+            let square = rows.iter().map(|s| &s[(j * 3)..(j * 3 + 3)]);
+
+            let flattened_sq = square
+                .flatten()
+                .copied()
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap_or([zero; 9]);
+
+            assert_unique_numbers(flattened_sq);
+        }
+    }
+
+    // Proves that the solution matches up with the puzzle where applicable
+    for i in 0..9 {
+        for j in 0..9 {
+            let square = solution[i][j];
+            let constraint = board[i][j];
+            (constraint * (constraint - square)).constrain_eq(zero);
+        }
+    }
+}
+
+fn main() -> Result<(), Error> {
+    let app = Compiler::new()
+        .zkp_backend::<BulletproofsBackend>()
+        .zkp_program(sudoku_proof)
+        .compile()?;
+
+    let prog = app.get_zkp_program(sudoku_proof).unwrap();
+
+    let runtime = ZkpRuntime::new(&BulletproofsBackend::new())?;
+
+    let ex_board = [
+        [0, 7, 0, 0, 2, 0, 0, 4, 6],
+        [0, 6, 0, 0, 0, 0, 8, 9, 0],
+        [2, 0, 0, 8, 0, 0, 7, 1, 5],
+        [0, 8, 4, 0, 9, 7, 0, 0, 0],
+        [7, 1, 0, 0, 0, 0, 0, 5, 9],
+        [0, 0, 0, 1, 3, 0, 4, 8, 0],
+        [6, 9, 7, 0, 0, 2, 0, 0, 8],
+        [0, 5, 8, 0, 0, 0, 0, 6, 0],
+        [4, 3, 0, 0, 8, 0, 0, 7, 0],
+    ];
+
+    let ex_sol = [
+        [8, 7, 5, 9, 2, 1, 3, 4, 6],
+        [3, 6, 1, 7, 5, 4, 8, 9, 2],
+        [2, 4, 9, 8, 6, 3, 7, 1, 5],
+        [5, 8, 4, 6, 9, 7, 1, 2, 3],
+        [7, 1, 3, 2, 4, 8, 6, 5, 9],
+        [9, 2, 6, 1, 3, 5, 4, 8, 7],
+        [6, 9, 7, 4, 1, 2, 5, 3, 8],
+        [1, 5, 8, 3, 7, 9, 2, 6, 4],
+        [4, 3, 2, 5, 8, 6, 9, 7, 1],
+    ];
+
+    let solution = ex_sol.map(|a| a.map(BulletproofsField::from));
+
+    let board = ex_board.map(|a| a.map(BulletproofsField::from));
+
+    let proof = runtime.prove(prog, vec![], vec![board], vec![solution])?;
+
+    runtime.verify(prog, &proof, vec![], vec![board])?;
+
+    Ok(())
+}
+`;
+
 export type State = string;
 
-export default function code(state = DEFAULT, action: Action): State {
+const exampleMap = {
+  [Example.Pir]: PIR,
+  [Example.Sudoku]: SUDOKU,
+};
+
+export default function code(state = PIR, action: Action): State {
   switch (action.type) {
+    case ActionType.ChangeExample:
+      if (action.changeCode) {
+        return exampleMap[action.example];
+      } else {
+        return state;
+      }
+
     case ActionType.RequestGistLoad:
       return '';
+
     case ActionType.GistLoadSucceeded:
       return action.code;
 
@@ -175,7 +300,7 @@ export default function code(state = DEFAULT, action: Action): State {
       return action.code;
 
     case ActionType.AddMainFunction:
-      return `${state}\n\n${DEFAULT}`;
+      return `${state}\n\n${HELLO_WORLD}`;
 
     case ActionType.AddImport:
       return action.code + state;

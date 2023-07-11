@@ -15,7 +15,7 @@ const Gist: React.SFC = () => {
 
   return (
     <div>
-      { showLoader ? <Loader /> : <Links />}
+      {showLoader ? <Loader /> : <Links />}
     </div>
   );
 };
@@ -54,16 +54,16 @@ class Copied extends React.PureComponent<CopiedProps, CopiedState> {
 
 const Links: React.SFC = () => {
   const codeUrl = useSelector(selectors.codeUrlSelector);
-  const gistUrl = useSelector((state: State) => state.output.gist.url);
-  const permalink = useSelector(selectors.permalinkSelector);
-  const urloUrl = useSelector(selectors.urloUrlSelector);
+  // const gistUrl = useSelector((state: State) => state.output.gist.url);
+  // const permalink = useSelector(selectors.permalinkSelector);
+  // const urloUrl = useSelector(selectors.urloUrlSelector);
 
   return (
     <Fragment>
-      <Copied href={permalink}>Permalink to the playground</Copied>
-      <Copied href={gistUrl}>Direct link to the gist</Copied>
+      {/*<Copied href={permalink}>Permalink to the playground</Copied>*/}
+      {/*<Copied href={gistUrl}>Direct link to the gist</Copied>*/}
       <Copied href={codeUrl}>Embedded code in link</Copied>
-      <NewWindow href={urloUrl}>Open a new thread in the Rust user forum</NewWindow>
+      {/*<NewWindow href={urloUrl}>Open a new thread in the Rust user forum</NewWindow>*/}
     </Fragment>
   );
 };

@@ -9,6 +9,7 @@ export function createRouter({
   stateToLocation,
   locationToAction,
 }) {
+  let initialPageLoad = true; // Avoid clobbering user changes
   let doingUpdateFromBrowser = false; // Avoid immediately PUSHing the state again
   let interestingPrevState;
 
@@ -29,11 +30,12 @@ export function createRouter({
   });
 
   const dispatchBrowserLocationChange = nextLocation => {
-    const action = locationToAction(nextLocation);
+    const action = locationToAction(nextLocation, initialPageLoad);
     if (action) {
       doingUpdateFromBrowser = true;
       store.dispatch(action);
       doingUpdateFromBrowser = false;
+      initialPageLoad = false;
     }
   };
 

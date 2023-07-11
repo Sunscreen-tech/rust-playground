@@ -12,12 +12,13 @@ import * as actions from './actions';
 const homeRoute = new Route('/');
 const helpRoute = new Route('/help');
 
-const stateSelector = ({ page, configuration: { channel, mode, edition } }) => ({
+const stateSelector = ({ page, configuration: { channel, mode, edition, example } }) => ({
   page,
   configuration: {
     channel,
     mode,
     edition,
+    example
   },
 });
 
@@ -34,6 +35,7 @@ const stateToLocation = ({ page, configuration }) => {
         version: configuration.channel,
         mode: configuration.mode,
         edition: configuration.edition,
+        example: configuration.example,
       };
       return {
         pathname: `/?${qs.stringify(query)}`,
@@ -42,7 +44,7 @@ const stateToLocation = ({ page, configuration }) => {
   }
 };
 
-const locationToAction = location => {
+const locationToAction = (location, initialPageLoad: boolean) => {
   const matchedHelp = helpRoute.match(location.pathname);
 
   if (matchedHelp) {
@@ -52,7 +54,9 @@ const locationToAction = location => {
   const matched = homeRoute.match(location.pathname);
 
   if (matched) {
-    return actions.indexPageLoad(qs.parse(location.search.slice(1)));
+    let query = qs.parse(location.search.slice(1));
+    query.initialPageLoad = initialPageLoad;
+    return actions.indexPageLoad(query);
   }
 
   return null;

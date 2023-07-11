@@ -18,6 +18,7 @@ import {
   DemangleAssembly,
   Edition,
   Editor,
+  Example,
   Focus,
   Mode,
   Notification,
@@ -61,6 +62,7 @@ const createAction = <T extends string, P extends {}>(type: T, props?: P) => (
 
 export enum ActionType {
   SetPage = 'SET_PAGE',
+  ChangeExample = 'CHANGE_EXAMPLE',
   ChangeEditor = 'CHANGE_EDITOR',
   ChangeKeybinding = 'CHANGE_KEYBINDING',
   ChangeAceTheme = 'CHANGE_ACE_THEME',
@@ -132,6 +134,9 @@ const setPage = (page: Page) =>
 
 export const navigateToIndex = () => setPage('index');
 export const navigateToHelp = () => setPage('help');
+
+export const changeExample = (example: Example, changeCode: boolean = true) =>
+  createAction(ActionType.ChangeExample, { example, changeCode });
 
 export const changeEditor = (editor: Editor) =>
   createAction(ActionType.ChangeEditor, { editor });
@@ -753,6 +758,8 @@ function parseEdition(s: string): Edition | null {
 export function indexPageLoad({
   code,
   gist,
+  example,
+  initialPageLoad,
   version = 'stable',
   mode: modeString = 'release',
   edition: editionString,
@@ -777,6 +784,8 @@ export function indexPageLoad({
       dispatch(editCode(code));
     } else if (gist) {
       dispatch(performGistLoad({ id: gist, channel, mode, edition }));
+    } else if (example) {
+      dispatch(changeExample(example, initialPageLoad))
     }
 
     if (channel) {
@@ -806,6 +815,7 @@ export function showExample(code): ThunkAction {
 
 export type Action =
   | ReturnType<typeof setPage>
+  | ReturnType<typeof changeExample>
   | ReturnType<typeof changePairCharacters>
   | ReturnType<typeof changeAssemblyFlavor>
   | ReturnType<typeof changeBacktrace>

@@ -15,12 +15,15 @@ import * as actions from './actions';
 import * as selectors from './selectors';
 
 import styles from './Header.module.css';
+import ExampleMenu from './ExampleMenu';
+import State from './state';
 
 const Header: React.SFC = () => (
   <div data-test-id="header" className={styles.container}>
     <HeaderSet id="build">
       <SegmentedButtonSet>
         <ExecuteButton />
+        <ExampleMenuButton />
         <BuildMenuButton />
       </SegmentedButtonSet>
     </HeaderSet>
@@ -86,6 +89,20 @@ const BuildMenuButton: React.SFC = () => {
   Button.displayName = 'BuildMenuButton.Button';
 
   return <PopButton Button={Button} Menu={BuildMenu} />;
+};
+
+const ExampleMenuButton: React.SFC = () => {
+  // For now just use enum key as label
+  const label = useSelector((state: State) => state.configuration.example);
+
+  const Button = React.forwardRef<HTMLButtonElement, { toggle: () => void }>(({ toggle }, ref) => (
+    <SegmentedButton title="Example &mdash; Choose the example code" ref={ref} onClick={toggle}>
+      <HeaderButton isExpandable>{label}</HeaderButton>
+    </SegmentedButton>
+  ));
+  Button.displayName = 'ExampleMenuButton.Button';
+
+  return <PopButton Button={Button} Menu={ExampleMenu} />;
 };
 
 const ModeMenuButton: React.SFC = () => {
