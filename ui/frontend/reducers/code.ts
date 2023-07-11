@@ -1,6 +1,10 @@
 import { Action, ActionType } from '../actions';
 
-const DEFAULT: State = `
+const HELLO_WORLD: State = `fn main() {
+    println!("Hello, world!");
+}`;
+
+const PIR: State = `
 use sunscreen::{
     fhe_program,
     types::{bfv::Signed, Cipher},
@@ -164,7 +168,7 @@ fn main() -> Result<(), Error> {
 
 export type State = string;
 
-export default function code(state = DEFAULT, action: Action): State {
+export default function code(state = PIR, action: Action): State {
   switch (action.type) {
     case ActionType.RequestGistLoad:
       return '';
@@ -175,7 +179,7 @@ export default function code(state = DEFAULT, action: Action): State {
       return action.code;
 
     case ActionType.AddMainFunction:
-      return `${state}\n\n${DEFAULT}`;
+      return `${state}\n\n${HELLO_WORLD}`;
 
     case ActionType.AddImport:
       return action.code + state;
