@@ -284,7 +284,11 @@ const exampleMap = {
 export default function code(state = PIR, action: Action): State {
   switch (action.type) {
     case ActionType.ChangeExample:
-      return exampleMap[action.example];
+      if (action.changeCode) {
+        return exampleMap[action.example];
+      } else {
+        return state;
+      }
 
     case ActionType.RequestGistLoad:
       return '';
