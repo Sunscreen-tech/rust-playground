@@ -1,4 +1,4 @@
-FROM cruizba/ubuntu-dind
+FROM sunscreendeployment/ubuntu-dind
 
 EXPOSE 5000
 
