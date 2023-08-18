@@ -168,15 +168,12 @@ fn main() -> Result<(), Error> {
 
 const SUDOKU: State = `use sunscreen::{
     bulletproofs::BulletproofsBackend,
-    types::zkp::{BulletproofsField, NativeField},
-    zkp_program, zkp_var, BackendField, Compiler, Error, ZkpRuntime,
+    types::zkp::{BulletproofsField, Field, FieldSpec},
+    zkp_program, zkp_var, Error, ZkpProgramFnExt,
 };
 
 #[zkp_program]
-fn sudoku_proof<F: BackendField>(
-    #[public] board: [[NativeField<F>; 9]; 9],
-    solution: [[NativeField<F>; 9]; 9],
-) {
+fn sudoku_proof<F: FieldSpec>(solution: [[Field<F>; 9]; 9], #[public] board: [[Field<F>; 9]; 9]) {
     let zero = zkp_var!(0);
 
     let assert_unique_numbers = |squares| {
@@ -229,14 +226,8 @@ fn sudoku_proof<F: BackendField>(
 }
 
 fn main() -> Result<(), Error> {
-    let app = Compiler::new()
-        .zkp_backend::<BulletproofsBackend>()
-        .zkp_program(sudoku_proof)
-        .compile()?;
-
-    let prog = app.get_zkp_program(sudoku_proof).unwrap();
-
-    let runtime = ZkpRuntime::new(&BulletproofsBackend::new())?;
+    let prog = sudoku_proof.compile::<BulletproofsBackend>()?;
+    let runtime = sudoku_proof.runtime::<BulletproofsBackend>()?;
 
     let ex_board = [
         [0, 7, 0, 0, 2, 0, 0, 4, 6],
@@ -266,9 +257,9 @@ fn main() -> Result<(), Error> {
 
     let board = ex_board.map(|a| a.map(BulletproofsField::from));
 
-    let proof = runtime.prove(prog, vec![], vec![board], vec![solution])?;
+    let proof = runtime.prove(&prog, vec![solution], vec![board], vec![])?;
 
-    runtime.verify(prog, &proof, vec![], vec![board])?;
+    runtime.verify(&prog, &proof, vec![board], vec![])?;
 
     Ok(())
 }
