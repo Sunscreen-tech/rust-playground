@@ -93,7 +93,7 @@ const BuildMenuButton: React.SFC = () => {
 
 const ExampleMenuButton: React.SFC = () => {
   // For now just use enum key as label
-  const label = useSelector((state: State) => state.configuration.example);
+  const label = useSelector((state: State) => `example - ${state.configuration.example}`);
 
   const Button = React.forwardRef<HTMLButtonElement, { toggle: () => void }>(({ toggle }, ref) => (
     <SegmentedButton title="Example &mdash; Choose the example code" ref={ref} onClick={toggle}>
